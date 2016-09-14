@@ -7,4 +7,4 @@ I used the following packages: numpy, pandas, beautifulsoup, matplotlib, request
 
 These choices were more motivated by my interest in learning to use these packages than by writing code which would not require much set up.
 
-![Sample output](sample/sample_ranks.pdf)
+![Sample output](sample/sample_ranks.png)

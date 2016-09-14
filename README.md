@@ -6,3 +6,5 @@ For fantasy baseball head-to-head leagues on CBS Sports there is no way to calcu
 I used the following packages: numpy, pandas, beautifulsoup, matplotlib, requests. Code was written for python3.
 
 These choices were more motivated by my interest in learning to use these packages than by writing code which would not require much set up.
+
+[Sample output](sample/sample_ranks.pdf)

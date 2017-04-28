@@ -1,37 +1,29 @@
+import getpass
+import lxml.html
+import requests
+
 def download_html():
     """Returns html file corresponding to year-to-date team scoring stats page"""
-    # Prompt user for league name and user name
+    # Prompt user for league name, user name, and password
     league = input('Enter short league name (e.g., jabo for jabo.baseball.cbssports.com): ')
     user   = input('Enter user name: ')
-    # Prompt user for their password (but don't display it)
-    import getpass
     password = getpass.getpass()
     # Desired html page
-    myurl = ('http://' + league + '.baseball.cbssports.com/stats/' +
-             'stats-main/teamtotals/ytd:f/scoring/stats')
+    myurl = 'http://' + league + '.baseball.cbssports.com/stats/' + \
+             'stats-main/teamtotals/ytd:f/scoring/stats'
     # Authenticating page
     loginurl = 'https://auth.cbssports.com/login/index'
-    # The post data (found using chrome developer tools)
-    # See http://stackoverflow.com/q/20415751/4846823
-    payload = {
-       'dummy::login_form': 1,
-       'form::login_form': 'login_form',
-       'xurl': myurl,
-       'master_product': 150,
-       'vendor': 'cbssports',
-       'userid': user,
-       'password': password,
-       '_submit': 'Sign in' }
-    # Make a request to the login page to make sure login info is correct
-    import requests
-    try:
-        response = requests.get(loginurl)
-    except requests.exceptions.ConnectionError as e:
-        print("Bad Domain - Could not log in")
-    # Note that we submit to the authenticating url, not the desired url
-    session = requests.session()
-    p = session.post(loginurl, data=payload)
-    r = session.get(myurl) # now get desired url
+    # Procedure from: https://brennan.io/2016/03/02/logging-in-with-requests/
+    s = requests.session()
+    login = s.get(loginurl)
+    # Get the post data
+    login_html = lxml.html.fromstring(login.text)
+    hidden_inputs = login_html.xpath(r'//form//input[@type="hidden"]')
+    form = {x.attrib["name"]: x.attrib["value"] for x in hidden_inputs}
+    form['userid']= user
+    form['password']=password
+    response = s.post(loginurl, data=form)
+    r = s.get(myurl)
     return r.content
 
 def scrape_html(html):
@@ -41,7 +33,7 @@ def scrape_html(html):
     # Use the beautiful soup package to parse html file
     soup = BeautifulSoup(html,'lxml')
     # This gets all of the relevant team stats and none of the unnecessary html junk
-    rows = soup.find_all('tr') 
+    rows = soup.find_all('tr')
     # To do: update below to automatically calculate number of teams in the league
     N_teams = int(input('Enter the number of teams in the league: '))
     # Initialize data for table
@@ -70,7 +62,7 @@ def scrape_html(html):
             H_stats[H_count,:] = [float(val.string) for val in row.contents]
             H_count += 1
         # Values for pitching stats
-        if (row_count > P_offset and row_count <= P_offset+N_teams): 
+        if (row_count > P_offset and row_count <= P_offset+N_teams):
             P_teams.append(row.contents.pop(0).string)
             P_stats[P_count,:] = [float(val.string) for val in row.contents]
             P_count += 1

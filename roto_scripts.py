@@ -1,6 +1,10 @@
 import getpass
 import lxml.html
 import requests
+import matplotlib.pyplot as plt
+import matplotlib
+import matplotlib.colors as mcolors
+import numpy as np
 
 def download_html():
     """Returns html file corresponding to year-to-date team scoring stats page"""
@@ -76,8 +80,6 @@ def scrape_html(html):
     return stats
 
 def calculate_ranks(stats):
-    import matplotlib.pyplot as plt
-    import matplotlib
     N_teams = len(stats)
     # Create a new pandas data frame for the relative ranks of each team in each category
     # e.g., team with least HR gets 1 point, team with 2nd least HR gets 2 points, etc.
@@ -96,15 +98,27 @@ def calculate_ranks(stats):
     ranks['scores']=scores
     # Sort by team with best overall roto ranking
     ranks=ranks.sort_values('scores',ascending=False)
-    # Print roto rankings
-    print(ranks)
     # Save the ranks as a csv file too
     ranks.to_csv('./roto_ranks.csv')
     # Make bar chart showing points in each category
     matplotlib.style.use('ggplot')
     # Drop score category for plotting
     ranks=ranks.drop('scores',axis=1)
-    ranks.plot.barh(stacked=True)
+    # Reorder columns
+    ranks = ranks[['BA', 'OBP', 'R', 'SB', 'RBI', 'HR', 'TB', 'SLG',
+                   'ERA', 'WHIP', 'INNdGS', 'W', 'K', 'K/BB', 'HD', 'S']]
+    cmap = def_colormap()
+    ranks.plot.barh(stacked=True, colormap=cmap, figsize=(8,6))
     plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.savefig('./roto_ranks_bar_chart.pdf',bbox_inches='tight')
     # To do: add a datestamp to filenames
+    return ranks
+
+def def_colormap():
+    # 8 hitting categories and 8 pitching categories
+    colors1 = plt.cm.Reds(np.linspace(0, 1, 8))
+    colors2 = plt.cm.Blues(np.linspace(0, 1, 8))
+    # combine them and build a new colormap
+    colors = np.vstack((colors1, colors2))
+    mymap = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+    return mymap

@@ -7,12 +7,14 @@ import matplotlib.colors as mcolors
 import numpy as np
 from bs4 import BeautifulSoup
 import pandas as pd
+import time
 
 def download_html():
     """Returns html file corresponding to year-to-date team scoring stats page"""
     # Prompt user for league name, user name, and password
     league = input('Enter short league name (e.g., jabo for jabo.baseball.cbssports.com): ')
     user   = input('Enter user name: ')
+    print('Enter password')
     password = getpass.getpass()
     # Desired html page
     myurl = 'http://' + league + '.baseball.cbssports.com/stats/' + \
@@ -26,8 +28,8 @@ def download_html():
     login_html = lxml.html.fromstring(login.text)
     hidden_inputs = login_html.xpath(r'//form//input[@type="hidden"]')
     form = {x.attrib["name"]: x.attrib["value"] for x in hidden_inputs}
-    form['userid']= user
-    form['password']=password
+    form['userid'] = user
+    form['password'] =password
     response = s.post(loginurl, data=form)
     r = s.get(myurl)
     return r.content
@@ -95,24 +97,24 @@ def calculate_ranks(stats):
     for cat in ascending:
         ranks[cat] = N_teams + 1 - ranks[cat]
     # Sum up each team's points to get their total roto ranking
-    scores=ranks.sum(axis=1).sort_values()
+    scores = ranks.sum(axis=1).sort_values()
     # Add the ranks field to our ranks data frame
     ranks['scores'] = scores
     # Sort by team with best overall roto ranking
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too
     ranks.to_csv('./roto_ranks.csv')
-    # Make bar chart showing points in each category
-    matplotlib.style.use('ggplot')
     # Drop score category for plotting
-    ranks=ranks.drop('scores',axis=1)
+    ranks = ranks.drop('scores', axis=1)
     # Reorder columns
     ranks = ranks[['BA', 'OBP', 'R', 'SB', 'RBI', 'HR', 'TB', 'SLG',
                    'ERA', 'WHIP', 'INNdGS', 'W', 'K', 'K/BB', 'HD', 'S']]
     cmap = def_colormap()
-    ranks.plot.barh(stacked=True, colormap=cmap, figsize=(8,6))
+    matplotlib.style.use('ggplot')
+    ranks.plot.barh(stacked=True, colormap=cmap, figsize=(8, 6))
     plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.savefig('./roto_ranks_bar_chart.pdf', bbox_inches='tight')
+    timestr = time.strftime("%Y-%m-%d")
+    plt.savefig('./roto_ranks_bar_chart_' + timestr + '.pdf', bbox_inches='tight')
     # To do: add a datestamp to filenames
     return ranks
 

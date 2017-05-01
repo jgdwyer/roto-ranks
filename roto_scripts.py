@@ -105,9 +105,25 @@ def calculate_ranks(stats):
     # Sort by team with best overall roto ranking
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too
-    timestr = time.strftime("%Y-%m-%d")
-    ranks.to_csv('./roto_ranks_' + timestr + '.csv')
+    ranks.to_csv('./roto_ranks_' + time.strftime("%Y-%m-%d") + '.csv')
     return ranks
+
+def formatRanksDateTime(ranks):
+    """Takes a ranks data frame, Extracts scores and returns a one-row dataframe
+    with team names as columns and datetime as index (pivot)"""
+    z = z['scores']
+    z = z.to_frame()
+    z = z.transpose()
+    z = z.set_index(pd.DatetimeIndex([time.strftime("%Y-%m-%d")]))
+
+def mergeSaveSeasonHistory(ranks, ranks_all_filename):
+    """Loads the ranks_all_filename dataframe and adds a new row to it"""
+    ranks_all = pd.read_csv(ranks_all_filename, index_col=[0], parse_dates=[0])
+    ranks_all = pd.concat([ranks_all, ranks], axis=0)
+    ranks_all.to_csv('./history/' + ranks_all_filename + '_' +
+                     time.strftime("%Y-%m-%d") + '.csv')
+    ranks_all.to_csv(ranks_all_filename + '.csv')
+    return ranks_all
 
 def plot_ranks_bar(ranks):
     """Makes a stacked bar chart of ranks"""
@@ -117,8 +133,8 @@ def plot_ranks_bar(ranks):
     matplotlib.style.use('ggplot')
     ranks.plot.barh(stacked=True, colormap=cmap, figsize=(8, 6))
     plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    timestr = time.strftime("%Y-%m-%d")
-    plt.savefig('./roto_ranks_bar_chart_' + timestr + '.pdf', bbox_inches='tight')
+    plt.savefig('./roto_ranks_bar_chart_' + time.strftime("%Y-%m-%d") + '.pdf',
+                bbox_inches='tight')
     # To do: add a datestamp to filenames
 
 def def_colormap():

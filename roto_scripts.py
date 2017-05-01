@@ -105,7 +105,8 @@ def calculate_ranks(stats):
     # Sort by team with best overall roto ranking
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too
-    ranks.to_csv('./roto_ranks.csv')
+    timestr = time.strftime("%Y-%m-%d")
+    ranks.to_csv('./roto_ranks_' + timestr + '.csv')
     return ranks
 
 def plot_ranks_bar(ranks):

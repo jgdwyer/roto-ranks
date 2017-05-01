@@ -90,7 +90,6 @@ def calculate_ranks(stats):
     Warning: BA, OBP, SLG, ERA, etc. can be taken out to more decimal places..
     This could be important for breaking ties (To Do!)"""
     N_teams = len(stats)
-
     ranks=stats.rank(axis=0, method='average')
     # For some categories, the smallest values are best. Account for this here:
     ascending = ['ERA', 'WHIP']
@@ -100,15 +99,19 @@ def calculate_ranks(stats):
     scores = ranks.sum(axis=1).sort_values()
     # Add the ranks field to our ranks data frame
     ranks['scores'] = scores
+    # Reorder columns
+    ranks = ranks[['BA', 'OBP', 'R', 'SB', 'RBI', 'HR', 'TB', 'SLG',
+                   'ERA', 'WHIP', 'INNdGS', 'W', 'K', 'K/BB', 'HD', 'S']]
     # Sort by team with best overall roto ranking
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too
     ranks.to_csv('./roto_ranks.csv')
+    return ranks
+
+def plot_ranks_bar(ranks):
+    """Makes a stacked bar chart of ranks"""
     # Drop score category for plotting
     ranks = ranks.drop('scores', axis=1)
-    # Reorder columns
-    ranks = ranks[['BA', 'OBP', 'R', 'SB', 'RBI', 'HR', 'TB', 'SLG',
-                   'ERA', 'WHIP', 'INNdGS', 'W', 'K', 'K/BB', 'HD', 'S']]
     cmap = def_colormap()
     matplotlib.style.use('ggplot')
     ranks.plot.barh(stacked=True, colormap=cmap, figsize=(8, 6))
@@ -116,7 +119,6 @@ def calculate_ranks(stats):
     timestr = time.strftime("%Y-%m-%d")
     plt.savefig('./roto_ranks_bar_chart_' + timestr + '.pdf', bbox_inches='tight')
     # To do: add a datestamp to filenames
-    return ranks
 
 def def_colormap():
     """Returns a colormap that separates hitting and pitching categories"""

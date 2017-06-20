@@ -57,7 +57,7 @@ def scrape_html(html):
     rows = soup.find_all('tr')
     # To do: update below to automatically calculate number of teams in the league
     _, _, _, N_teams = loadCredentials()
-    N_teams = int(input('Enter the number of teams in the league: '))
+    N_teams = int(N_teams)
     # Initialize data for table
     H_count = 0
     P_count = 0

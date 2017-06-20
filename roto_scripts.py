@@ -1,8 +1,9 @@
 import getpass
 import lxml.html
 import requests
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
 from bs4 import BeautifulSoup
@@ -101,7 +102,7 @@ def calculate_ranks(stats):
     ranks['scores'] = scores
     # Reorder columns
     ranks = ranks[['BA', 'OBP', 'R', 'SB', 'RBI', 'HR', 'TB', 'SLG',
-                   'ERA', 'WHIP', 'INNdGS', 'W', 'K', 'K/BB', 'HD', 'S']]
+                   'ERA', 'WHIP', 'INNdGS', 'W', 'K', 'K/BB', 'HD', 'S', 'scores']]
     # Sort by team with best overall roto ranking
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too

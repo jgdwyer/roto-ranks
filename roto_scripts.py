@@ -9,14 +9,12 @@ import numpy as np
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
+import os
 
 def download_html():
     """Returns html file corresponding to year-to-date team scoring stats page"""
     # Prompt user for league name, user name, and password
-    league = input('Enter short league name (e.g., jabo for jabo.baseball.cbssports.com): ')
-    user   = input('Enter user name: ')
-    print('Enter password')
-    password = getpass.getpass()
+    user, password, league, _ = loadCredentials()
     # Desired html page
     myurl = 'http://' + league + '.baseball.cbssports.com/stats/' + \
              'stats-main/teamtotals/ytd:f/scoring/stats'
@@ -35,6 +33,21 @@ def download_html():
     r = s.get(myurl)
     return r.content
 
+def loadCredentials():
+    user = os.environ['JABOUSER']
+    password = os.environ['JABOPASS']
+    league = os.environ['JABOLEAGUE']
+    N_teams = os.environ['JABOTEAMS']
+    return user, password, league, N_teams
+
+def askCredentials():
+    user   = input('Enter user name: ')
+    print('Enter password')
+    password = getpass.getpass()
+    league = input('Enter short league name (e.g., jabo for jabo.baseball.cbssports.com): ')
+    N_teams = input('Enter the number of teams in the league: ')
+    return user, password, league, N_teams
+
 def scrape_html(html):
     """Scrapes cbssports html page and returns a pandas dataframe of sorted team
     totals using the beautiful soup package"""
@@ -43,6 +56,7 @@ def scrape_html(html):
     # This gets all of the relevant team stats and none of the unnecessary html junk
     rows = soup.find_all('tr')
     # To do: update below to automatically calculate number of teams in the league
+    _, _, _, N_teams = loadCredentials()
     N_teams = int(input('Enter the number of teams in the league: '))
     # Initialize data for table
     H_count = 0

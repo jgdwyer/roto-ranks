@@ -121,6 +121,7 @@ def calculate_ranks(stats):
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too
     ranks.to_csv('./roto_ranks_' + time.strftime("%Y-%m-%d") + '.csv')
+    ranks.to_csv('./roto_ranks.csv')
     return ranks
 
 def updateIndexHTML(indexfile):

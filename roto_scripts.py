@@ -109,6 +109,18 @@ def calculate_ranks(stats):
     ranks.to_csv('./roto_ranks_' + time.strftime("%Y-%m-%d") + '.csv')
     return ranks
 
+def updateIndexHTML(indexfile):
+    # Read in the file
+    with open(indexfile, 'r') as f:
+        filedata = f.read()
+    # Replace the target string
+    filedata = filedata.replace('Statistics Updated on ',
+                                'Statistics Updated on ' + time.strftime("%Y-%m-%d"))
+    # Write the file out again
+    with open('index.html', 'w') as f:
+        f.write(filedata)
+
+
 def formatRanksDateTime(ranks):
     """Takes a ranks data frame, Extracts scores and returns a one-row dataframe
     with team names as columns and datetime as index (pivot)"""

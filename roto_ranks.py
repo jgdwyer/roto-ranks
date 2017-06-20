@@ -8,3 +8,6 @@ stats = r.scrape_html(html)
 
 # Calculate roto rankings 
 ranks = r.calculate_ranks(stats)
+
+# Update html file to reflect new day's stats
+r.updateIndexHTML('/home/ubuntu/csv-to-html-table/index.html')

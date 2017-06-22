@@ -1,7 +1,8 @@
 roto_ranks_bar_chart.pdf
 roto_ranks.csv
 __pycache__
-
+csv
+*.pyc
 # Compiled source #
 ###################
 *.com

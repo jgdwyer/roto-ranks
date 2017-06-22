@@ -120,8 +120,8 @@ def calculate_ranks(stats):
     # Sort by team with best overall roto ranking
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too
-    ranks.to_csv('./csv/roto_ranks_' + time.strftime("%Y-%m-%d") + '.csv')
-    ranks.to_csv('./csv/roto_ranks.csv')
+    ranks.to_csv('/home/ubuntu/roto-ranks/csv/roto_ranks_' + time.strftime("%Y-%m-%d") + '.csv')
+    ranks.to_csv('/home/ubuntu/roto-ranks/csv/roto_ranks.csv')
     return ranks
 
 def updateIndexHTML(indexfile):
@@ -132,7 +132,7 @@ def updateIndexHTML(indexfile):
     filedata = filedata.replace('Statistics Updated on ',
                                 'Statistics Updated on ' + time.strftime("%Y-%m-%d"))
     # Write the file out again
-    with open('./index/index.html', 'w') as f:
+    with open('/home/ubuntu/roto-ranks/index/index.html', 'w') as f:
         f.write(filedata)
 
 

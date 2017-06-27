@@ -139,10 +139,11 @@ def updateIndexHTML(indexfile):
 def formatRanksDateTime(ranks):
     """Takes a ranks data frame, Extracts scores and returns a one-row dataframe
     with team names as columns and datetime as index (pivot)"""
-    z = z['scores']
-    z = z.to_frame()
-    z = z.transpose()
-    z = z.set_index(pd.DatetimeIndex([time.strftime("%Y-%m-%d")]))
+    ranks = ranks['scores']
+    ranks = ranks.to_frame()
+    ranks = ranks.transpose()
+    ranks = ranks.set_index(pd.DatetimeIndex([time.strftime("%Y-%m-%d")]))
+    return ranks
 
 def mergeSaveSeasonHistory(ranks, ranks_all_filename):
     """Loads the ranks_all_filename dataframe and adds a new row to it"""

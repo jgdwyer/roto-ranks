@@ -117,20 +117,27 @@ def calculate_ranks(stats):
     # Reorder columns
     ranks = ranks[['BA', 'OBP', 'R', 'SB', 'RBI', 'HR', 'TB', 'SLG',
                    'ERA', 'WHIP', 'INNdGS', 'W', 'K', 'K/BB', 'HD', 'S', 'scores']]
+    stats = stats[['BA', 'OBP', 'R', 'SB', 'RBI', 'HR', 'TB', 'SLG',
+                   'ERA', 'WHIP', 'INNdGS', 'W', 'K', 'K/BB', 'HD', 'S']]
     # Sort by team with best overall roto ranking
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too
     ranks.to_csv('/home/ubuntu/roto-ranks/csv/roto_ranks_' + time.strftime("%Y-%m-%d") + '.csv')
     ranks.to_csv('/home/ubuntu/roto-ranks/csv/roto_ranks.csv')
+    for var in ['R', 'SB', 'RBI', 'HR', 'TB', 'W', 'K', 'HD', 'S']:
+        stats[var] = stats[var].astype(int)
+    stats.to_csv('/home/ubuntu/roto-ranks/csv/roto_stats_' + time.strftime("%Y-%m-%d") + '.csv')
+    stats.to_csv('/home/ubuntu/roto-ranks/csv/roto_stats.csv')
     return ranks
 
-def updateIndexHTML(indexfile):
+def updateIndexHTML():
     # Read in the file
+    indexfile = '/home/ubuntu/roto-ranks/index/index_orig.html'
     with open(indexfile, 'r') as f:
         filedata = f.read()
     # Replace the target string
-    filedata = filedata.replace('Statistics Updated on ',
-                                'Statistics Updated on ' + time.strftime("%Y-%m-%d"))
+    filedata = filedata.replace('Statistics updated on ',
+                                'Statistics updated on ' + time.strftime("%Y-%m-%d"))
     # Write the file out again
     with open('/home/ubuntu/roto-ranks/index/index.html', 'w') as f:
         f.write(filedata)

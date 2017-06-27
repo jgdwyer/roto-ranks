@@ -148,11 +148,31 @@ def formatRanksDateTime(ranks):
 def mergeSaveSeasonHistory(ranks, ranks_all_filename):
     """Loads the ranks_all_filename dataframe and adds a new row to it"""
     ranks_all = pd.read_csv(ranks_all_filename, index_col=[0], parse_dates=[0])
-    ranks_all = pd.concat([ranks_all, ranks], axis=0)
-    ranks_all.to_csv('./history/' + ranks_all_filename + '_' +
+    if ranks.index[0] in ranks_all.index:
+        print('Date already in this csv file. Not adding.')
+    else:
+        print(ranks.index)
+        print(ranks_all.index)
+        ranks_all = pd.concat([ranks_all, ranks], axis=0)
+    ranks_all.to_csv(ranks_all_filename + '_' +
                      time.strftime("%Y-%m-%d") + '.csv')
-    ranks_all.to_csv(ranks_all_filename + '.csv')
+    ranks_all.to_csv(ranks_all_filename)
     return ranks_all
+
+def updateHistory(ranks, ranks_date=None):
+    out = formatRanksDateTime(ranks)
+    if ranks_date is not None:
+        out.index = pd.DatetimeIndex([ranks_date])
+    mergeSaveSeasonHistory(out, '/home/ubuntu/roto-ranks/csv/time_series.csv')
+    plotTimeSeries('/home/ubuntu/roto-ranks/csv/time_series.csv')
+
+def plotTimeSeries(ranks_all_filename):
+    ranks_all = pd.read_csv(ranks_all_filename, index_col=[0], parse_dates=[0])
+    matplotlib.style.use('ggplot')
+    ranks_all.plot(colormap='gist_ncar',style=['-','--','-','--','-','--','-','--','-','--','-','--','-','--'])
+    plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.savefig('/home/ubuntu/roto-ranks/figs/timeseries.png', bbox_inches='tight')
+    plt.savefig('/home/ubuntu/roto-ranks/figs/timeseries_' + time.strftime("%Y-%m-%d") + '.png', bbox_inches='tight')
 
 def plot_ranks_bar(ranks):
     """Makes a stacked bar chart of ranks"""

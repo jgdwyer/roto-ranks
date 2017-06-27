@@ -161,6 +161,7 @@ def plot_ranks_bar(ranks):
     cmap = def_colormap()
     matplotlib.style.use('ggplot')
     ranks.plot.barh(stacked=True, colormap=cmap, figsize=(8, 6))
+    plt.title('JABO Rotisserie Ranks through ' + time.strftime("%Y-%m-%d"))
     plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.savefig('/home/ubuntu/roto-ranks/figs/roto_ranks_bar_chart_' + time.strftime("%Y-%m-%d") + '.png',
                 bbox_inches='tight')

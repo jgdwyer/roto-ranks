@@ -11,3 +11,6 @@ ranks = r.calculate_ranks(stats)
 
 # Update html file to reflect new day's stats
 r.updateIndexHTML('/home/ubuntu/csv-to-html-table/index.html')
+
+# Make bar chart
+r.plot_ranks_bar(ranks)

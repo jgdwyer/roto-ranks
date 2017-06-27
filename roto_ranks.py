@@ -14,3 +14,6 @@ r.updateIndexHTML()
 
 # Make bar chart
 r.plot_ranks_bar(ranks)
+
+# Make time series and update history csv
+r.updateHistory(ranks)

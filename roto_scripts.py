@@ -161,7 +161,7 @@ def mergeSaveSeasonHistory(ranks, ranks_all_filename):
         print(ranks.index)
         print(ranks_all.index)
         ranks_all = pd.concat([ranks_all, ranks], axis=0)
-    ranks_all.to_csv(ranks_all_filename + '_' +
+    ranks_all.to_csv(ranks_all_filename[:-4] + '_' +
                      time.strftime("%Y-%m-%d") + '.csv')
     ranks_all.to_csv(ranks_all_filename)
     return ranks_all

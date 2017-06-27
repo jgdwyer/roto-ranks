@@ -162,9 +162,9 @@ def plot_ranks_bar(ranks):
     matplotlib.style.use('ggplot')
     ranks.plot.barh(stacked=True, colormap=cmap, figsize=(8, 6))
     plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.savefig('./roto_ranks_bar_chart_' + time.strftime("%Y-%m-%d") + '.pdf',
+    plt.savefig('/home/ubuntu/roto-ranks/figs/roto_ranks_bar_chart_' + time.strftime("%Y-%m-%d") + '.png',
                 bbox_inches='tight')
-    # To do: add a datestamp to filenames
+    plt.savefig('/home/ubuntu/roto-ranks/figs/roto_ranks_bar_chart.png', bbox_inches='tight')
 
 def def_colormap():
     """Returns a colormap that separates hitting and pitching categories"""

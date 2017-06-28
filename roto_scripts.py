@@ -34,6 +34,7 @@ def download_html():
     return r.content
 
 def loadCredentials():
+    """Loads credentials from environmental variables"""
     user = os.environ['JABOUSER']
     password = os.environ['JABOPASS']
     league = os.environ['JABOLEAGUE']
@@ -41,6 +42,7 @@ def loadCredentials():
     return user, password, league, N_teams
 
 def askCredentials():
+    """Manually asks user to enter credentials"""
     user   = input('Enter user name: ')
     print('Enter password')
     password = getpass.getpass()
@@ -131,6 +133,7 @@ def calculate_ranks(stats):
     return ranks
 
 def updateIndexHTML():
+    """Updates the index.html file to reflect that statistics have been updated for the current day"""
     # Read in the file
     indexfile = '/home/ubuntu/roto-ranks/index/index_orig.html'
     with open(indexfile, 'r') as f:
@@ -158,8 +161,6 @@ def mergeSaveSeasonHistory(ranks, ranks_all_filename):
     if ranks.index[0] in ranks_all.index:
         print('Date already in this csv file. Not adding.')
     else:
-        print(ranks.index)
-        print(ranks_all.index)
         ranks_all = pd.concat([ranks_all, ranks], axis=0)
     ranks_all.to_csv(ranks_all_filename[:-4] + '_' +
                      time.strftime("%Y-%m-%d") + '.csv')
@@ -167,6 +168,7 @@ def mergeSaveSeasonHistory(ranks, ranks_all_filename):
     return ranks_all
 
 def updateHistory(ranks, ranks_date=None):
+    """Updates the stats over time csv file and plots the time series graph"""
     out = formatRanksDateTime(ranks)
     if ranks_date is not None:
         out.index = pd.DatetimeIndex([ranks_date])
@@ -174,6 +176,7 @@ def updateHistory(ranks, ranks_date=None):
     plotTimeSeries('/home/ubuntu/roto-ranks/csv/time_series.csv')
 
 def plotTimeSeries(ranks_all_filename):
+    """Plot time series of team rankings (assumes 14 teams)"""
     ranks_all = pd.read_csv(ranks_all_filename, index_col=[0], parse_dates=[0])
     matplotlib.style.use('ggplot')
     ranks_all.plot(colormap='gist_ncar',style=['-','--','-','--','-','--','-','--','-','--','-','--','-','--'])

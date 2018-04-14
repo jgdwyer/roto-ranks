@@ -4,6 +4,10 @@ __pycache__
 csv
 figs
 index
+index.html
+.idea
+.ipynb_checkpoints
+*.ipynb
 *.pyc
 # Compiled source #
 ###################

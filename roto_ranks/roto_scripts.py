@@ -11,27 +11,30 @@ import pandas as pd
 import time
 import os
 
+rootpath = './'
+
+
 def download_html():
-    """Returns html file corresponding to year-to-date team scoring stats page"""
+    """Returns html file corresponding to year-to-date team scoring stats page
+    Procedure from: https://brennan.io/2016/03/02/logging-in-with-requests/"""
     # Prompt user for league name, user name, and password
     user, password, league, _ = loadCredentials()
     # Desired html page
-    myurl = 'http://' + league + '.baseball.cbssports.com/stats/' + \
-             'stats-main/teamtotals/ytd:f/scoring/stats'
+    myurl = f'http://{league}.baseball.cbssports.com/stats/stats-main/teamtotals/ytd:f/scoring/stats'
     # Authenticating page
-    loginurl = 'https://auth.cbssports.com/login/index'
-    # Procedure from: https://brennan.io/2016/03/02/logging-in-with-requests/
+    loginurl = 'https://www.cbssports.com/login'
     s = requests.session()
     login = s.get(loginurl)
     # Get the post data
     login_html = lxml.html.fromstring(login.text)
-    hidden_inputs = login_html.xpath(r'//form//input[@type="hidden"]')
-    form = {x.attrib["name"]: x.attrib["value"] for x in hidden_inputs}
+    hidden_inputs = login_html.xpath(r'//form//input')
+    form = {x.attrib["name"]: x.attrib["value"] for x in hidden_inputs if x.attrib['type'] != 'checkbox'}
     form['userid'] = user
-    form['password'] =password
-    response = s.post(loginurl, data=form)
+    form['password'] = password
+    _ = s.post(loginurl, data=form)
     r = s.get(myurl)
     return r.content
+
 
 def loadCredentials():
     """Loads credentials from environmental variables"""
@@ -41,63 +44,66 @@ def loadCredentials():
     N_teams = os.environ['JABOTEAMS']
     return user, password, league, N_teams
 
-def askCredentials():
+
+def ask_credentials():
     """Manually asks user to enter credentials"""
-    user   = input('Enter user name: ')
+    user = input('Enter user name: ')
     print('Enter password')
     password = getpass.getpass()
     league = input('Enter short league name (e.g., jabo for jabo.baseball.cbssports.com): ')
-    N_teams = input('Enter the number of teams in the league: ')
-    return user, password, league, N_teams
+    n_teams = input('Enter the number of teams in the league: ')
+    return user, password, league, n_teams
+
 
 def scrape_html(html):
     """Scrapes cbssports html page and returns a pandas dataframe of sorted team
     totals using the beautiful soup package"""
     # Use the beautiful soup package to parse html file
-    soup = BeautifulSoup(html,'lxml')
+    soup = BeautifulSoup(html, 'lxml')
     # This gets all of the relevant team stats and none of the unnecessary html junk
     rows = soup.find_all('tr')
     # To do: update below to automatically calculate number of teams in the league
-    _, _, _, N_teams = loadCredentials()
-    N_teams = int(N_teams)
+    _, _, _, n_teams = loadCredentials()
+    n_teams = int(n_teams)
     # Initialize data for table
-    H_count = 0
-    P_count = 0
-    H_teams = []
-    P_teams = []
-    H_headers = []
-    P_headers = []
-    H_stats = np.zeros((N_teams, 8))
-    P_stats = np.zeros((N_teams, 8))
+    h_count = 0
+    p_count = 0
+    h_teams = []
+    p_teams = []
+    h_headers = []
+    p_headers = []
+    h_stats = np.zeros((n_teams, 8))
+    p_stats = np.zeros((n_teams, 8))
     # These values say where the hitting and pitching headers begin
-    H_offset = 3
-    P_offset = 2 * H_offset + 1 + N_teams
+    h_offset = 3
+    p_offset = 2 * h_offset + 1 + n_teams
     # Loop through rows to get the player infoa
     for row_count, row in enumerate(rows):
         # Header for hitting stats
-        if row_count == H_offset:
-            H_headers = [entry.string for entry in row.contents]
+        if row_count == h_offset:
+            h_headers = [entry.string for entry in row.contents]
         # Header for pitching stats
-        if row_count == P_offset:
-            P_headers = [entry.string for entry in row.contents]
+        if row_count == p_offset:
+            p_headers = [entry.string for entry in row.contents]
         # Values for hitting stats
-        if (row_count > H_offset and row_count <= H_offset + N_teams):
-            H_teams.append(row.contents.pop(0).string)
-            H_stats[H_count, :] = [float(val.string) for val in row.contents]
-            H_count += 1
+        if h_offset < row_count <= h_offset + n_teams:
+            h_teams.append(row.contents.pop(0).string)
+            h_stats[h_count, :] = [float(val.string) for val in row.contents]
+            h_count += 1
         # Values for pitching stats
-        if (row_count > P_offset and row_count <= P_offset + N_teams):
-            P_teams.append(row.contents.pop(0).string)
-            P_stats[P_count, :] = [float(val.string) for val in row.contents]
-            P_count += 1
+        if p_offset < row_count <= p_offset + n_teams:
+            p_teams.append(row.contents.pop(0).string)
+            p_stats[p_count, :] = [float(val.string) for val in row.contents]
+            p_count += 1
     # Remove the "team" entry from the headers file
-    H_headers.pop(0)
-    P_headers.pop(0)
+    h_headers.pop(0)
+    p_headers.pop(0)
     # Convert to pandas data frame and combine hitting and pitching stats
-    h = pd.DataFrame(H_stats, index=H_teams, columns=H_headers)
-    p = pd.DataFrame(P_stats, index=P_teams, columns=P_headers)
+    h = pd.DataFrame(h_stats, index=h_teams, columns=h_headers)
+    p = pd.DataFrame(p_stats, index=p_teams, columns=p_headers)
     stats = pd.concat([h, p], axis=1)
     return stats
+
 
 def calculate_ranks(stats):
     """Create a new pandas data frame for the relative ranks of each team in each
@@ -106,12 +112,12 @@ def calculate_ranks(stats):
     This ensures that all categories have the same number of total points awarded
     Warning: BA, OBP, SLG, ERA, etc. can be taken out to more decimal places..
     This could be important for breaking ties (To Do!)"""
-    N_teams = len(stats)
+    n_teams = len(stats)
     ranks=stats.rank(axis=0, method='average')
     # For some categories, the smallest values are best. Account for this here:
     ascending = ['ERA', 'WHIP']
     for cat in ascending:
-        ranks[cat] = N_teams + 1 - ranks[cat]
+        ranks[cat] = n_teams + 1 - ranks[cat]
     # Sum up each team's points to get their total roto ranking
     scores = ranks.sum(axis=1).sort_values()
     # Add the ranks field to our ranks data frame
@@ -124,29 +130,30 @@ def calculate_ranks(stats):
     # Sort by team with best overall roto ranking
     ranks = ranks.sort_values('scores', ascending=False)
     # Save the ranks as a csv file too
-    ranks.to_csv('/home/ubuntu/roto-ranks/csv/roto_ranks_' + time.strftime("%Y-%m-%d") + '.csv')
-    ranks.to_csv('/home/ubuntu/roto-ranks/csv/roto_ranks.csv')
+    ranks.to_csv(rootpath + '/csv/roto_ranks_' + time.strftime("%Y-%m-%d") + '.csv')
+    ranks.to_csv(rootpath + '/csv/roto_ranks.csv')
     for var in ['R', 'SB', 'RBI', 'HR', 'TB', 'W', 'K', 'HD', 'S']:
         stats[var] = stats[var].astype(int)
-    stats.to_csv('/home/ubuntu/roto-ranks/csv/roto_stats_' + time.strftime("%Y-%m-%d") + '.csv')
-    stats.to_csv('/home/ubuntu/roto-ranks/csv/roto_stats.csv')
+    stats.to_csv(rootpath + '/csv/roto_stats_' + time.strftime("%Y-%m-%d") + '.csv')
+    stats.to_csv(rootpath + '/csv/roto_stats.csv')
     return ranks
 
-def updateIndexHTML():
+
+def update_index_html():
     """Updates the index.html file to reflect that statistics have been updated for the current day"""
     # Read in the file
-    indexfile = '/home/ubuntu/roto-ranks/index/index_orig.html'
+    indexfile = rootpath + '/index/index_orig.html'
     with open(indexfile, 'r') as f:
         filedata = f.read()
     # Replace the target string
     filedata = filedata.replace('Statistics updated on ',
                                 'Statistics updated on ' + time.strftime("%Y-%m-%d"))
     # Write the file out again
-    with open('/home/ubuntu/roto-ranks/index/index.html', 'w') as f:
+    with open(rootpath + '/index/index.html', 'w') as f:
         f.write(filedata)
 
 
-def formatRanksDateTime(ranks):
+def format_ranks_date_time(ranks):
     """Takes a ranks data frame, Extracts scores and returns a one-row dataframe
     with team names as columns and datetime as index (pivot)"""
     ranks = ranks['scores']
@@ -155,9 +162,13 @@ def formatRanksDateTime(ranks):
     ranks = ranks.set_index(pd.DatetimeIndex([time.strftime("%Y-%m-%d")]))
     return ranks
 
-def mergeSaveSeasonHistory(ranks, ranks_all_filename):
+
+def merge_save_season_history(ranks, ranks_all_filename):
     """Loads the ranks_all_filename dataframe and adds a new row to it"""
-    ranks_all = pd.read_csv(ranks_all_filename, index_col=[0], parse_dates=[0])
+    try:
+        ranks_all = pd.read_csv(ranks_all_filename, index_col=[0], parse_dates=[0])
+    except FileNotFoundError:
+        ranks_all = pd.DataFrame()
     if ranks.index[0] in ranks_all.index:
         print('Date already in this csv file. Not adding.')
     else:
@@ -167,22 +178,25 @@ def mergeSaveSeasonHistory(ranks, ranks_all_filename):
     ranks_all.to_csv(ranks_all_filename)
     return ranks_all
 
-def updateHistory(ranks, ranks_date=None):
+
+def update_history(ranks, ranks_date=None):
     """Updates the stats over time csv file and plots the time series graph"""
-    out = formatRanksDateTime(ranks)
+    out = format_ranks_date_time(ranks)
     if ranks_date is not None:
         out.index = pd.DatetimeIndex([ranks_date])
-    mergeSaveSeasonHistory(out, '/home/ubuntu/roto-ranks/csv/time_series.csv')
-    plotTimeSeries('/home/ubuntu/roto-ranks/csv/time_series.csv')
+    merge_save_season_history(out, rootpath + '/csv/time_series.csv')
+    plot_time_series(rootpath + '/csv/time_series.csv')
 
-def plotTimeSeries(ranks_all_filename):
+
+def plot_time_series(ranks_all_filename):
     """Plot time series of team rankings (assumes 14 teams)"""
     ranks_all = pd.read_csv(ranks_all_filename, index_col=[0], parse_dates=[0])
     matplotlib.style.use('ggplot')
     ranks_all.plot(colormap='gist_ncar',style=['-','--','-','--','-','--','-','--','-','--','-','--','-','--'])
     plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.savefig('/home/ubuntu/roto-ranks/figs/timeseries.png', bbox_inches='tight')
-    plt.savefig('/home/ubuntu/roto-ranks/figs/timeseries_' + time.strftime("%Y-%m-%d") + '.png', bbox_inches='tight')
+    plt.savefig(rootpath + '/figs/timeseries.png', bbox_inches='tight')
+    plt.savefig(rootpath + '/figs/timeseries_' + time.strftime("%Y-%m-%d") + '.png', bbox_inches='tight')
+
 
 def plot_ranks_bar(ranks):
     """Makes a stacked bar chart of ranks"""
@@ -193,9 +207,10 @@ def plot_ranks_bar(ranks):
     ranks.plot.barh(stacked=True, colormap=cmap, figsize=(8, 6))
     plt.title('JABO Rotisserie Ranks through ' + time.strftime("%Y-%m-%d"))
     plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.savefig('/home/ubuntu/roto-ranks/figs/roto_ranks_bar_chart_' + time.strftime("%Y-%m-%d") + '.png',
+    plt.savefig(rootpath + '/figs/roto_ranks_bar_chart_' + time.strftime("%Y-%m-%d") + '.png',
                 bbox_inches='tight')
-    plt.savefig('/home/ubuntu/roto-ranks/figs/roto_ranks_bar_chart.png', bbox_inches='tight')
+    plt.savefig(rootpath + '/figs/roto_ranks_bar_chart.png', bbox_inches='tight')
+
 
 def def_colormap():
     """Returns a colormap that separates hitting and pitching categories"""

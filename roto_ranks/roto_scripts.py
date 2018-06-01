@@ -140,8 +140,8 @@ def calculate_ranks(stats):
         stats[var] = stats[var].astype(int)
     stats.to_csv(rootpath + '/csv/roto_stats_' + time.strftime("%Y-%m-%d") + '.csv')
     stats.to_csv(rootpath + '/csv/roto_stats.csv')
-    s3.Object(bucket_name + '/data', 'roto_ranks.csv').upload_file(rootpath + '/csv/roto_ranks.csv')
-    s3.Object(bucket_name + '/data', 'roto_stats.csv').upload_file(rootpath + '/csv/roto_stats.csv')
+    s3.Object(bucket_name, 'roto-ranks/data/roto_ranks.csv').upload_file(rootpath + '/csv/roto_ranks.csv')
+    s3.Object(bucket_name, 'roto-ranks/data/roto_stats.csv').upload_file(rootpath + '/csv/roto_stats.csv')
     return ranks
 
 
@@ -157,7 +157,7 @@ def update_index_html():
     # Write the file out again
     with open(rootpath + '/index/index.html', 'w') as f:
         f.write(filedata)
-    s3.Object(bucket_name, 'index.html').upload_file(rootpath + '/index/index.html')
+    s3.Object(bucket_name, 'roto-ranks/index.html').upload_file(rootpath + '/index/index.html')
 
 
 def format_ranks_date_time(ranks):
@@ -203,7 +203,7 @@ def plot_time_series(ranks_all_filename):
     plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.savefig(rootpath + '/figs/timeseries.png', bbox_inches='tight')
     plt.savefig(rootpath + '/figs/timeseries_' + time.strftime("%Y-%m-%d") + '.png', bbox_inches='tight')
-    s3.Object(bucket_name + '/figs', 'timeseries.png').upload_file(rootpath + '/figs/timeseries.png')
+    s3.Object(bucket_name, 'roto-ranks/figs/timeseries.png').upload_file(rootpath + '/figs/timeseries.png')
 
 
 def plot_ranks_bar(ranks):
@@ -218,7 +218,7 @@ def plot_ranks_bar(ranks):
     plt.savefig(rootpath + '/figs/roto_ranks_bar_chart_' + time.strftime("%Y-%m-%d") + '.png',
                 bbox_inches='tight')
     plt.savefig(rootpath + '/figs/roto_ranks_bar_chart.png', bbox_inches='tight')
-    s3.Object(bucket_name + '/figs', 'roto_ranks_bar_chart.png').upload_file(rootpath + '/figs/roto_ranks_bar_chart.png')
+    s3.Object(bucket_name, 'roto-ranks/figs/roto_ranks_bar_chart.png').upload_file(rootpath + '/figs/roto_ranks_bar_chart.png')
 
 
 def def_colormap():
